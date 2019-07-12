@@ -11,7 +11,6 @@ window.addEventListener("load", ()=>{
 	context.fillRect(300,(window.innerHeight/2-100),800,10);
 	context.fillRect(300,(window.innerHeight/2+100),800,10);
 	
-	
 	let painting = false;
 	
 	//	Whether the user is painting or not is tracked to know when to stop 
@@ -43,6 +42,12 @@ window.addEventListener("load", ()=>{
 		context.moveTo(e.clientX,e.clientY);
 		
 	}
+	
+	//Need to add button to trigger this and clear screen
+	function clearScreen(){
+		context.clearRect(0, 0, canvas.width, canvas.height);
+	}
+	
 	//	EventListeners
 	canvas.addEventListener("mousedown", startPosition);
 	canvas.addEventListener("mouseup", finishedPosition);
