@@ -5,8 +5,8 @@ window.addEventListener("load", ()=>{
 	//Dynamic sizing based on window size
 	canvas.height = window.innerHeight;
 	canvas.width = window.innerWidth;
-	context.fillRect(475,20,10,600);
-	context.fillRect(700,20,10,600);
+	context.fillRect(475,20,10,550);
+	context.fillRect(700,20,10,550);
 	context.fillRect(300,200,600,10);
 	context.fillRect(300,400,600,10);
 	
