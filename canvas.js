@@ -1,15 +1,19 @@
 window.addEventListener("load", ()=>{						
+	//make rectangles all over the titles and track cordinates and have the computer not allow anything outside of it
 	const canvas = document.querySelector("#canvas");
 	const context = canvas.getContext("2d"); 	
-
-	//Dynamic sizing based on window size
+	var timerVar;
+	var totalSeconds = 0;
+	var position = 40;
+	
+	//	Dynamic sizing based on window size
 	canvas.height = window.innerHeight;
 	canvas.width = window.innerWidth;
 	context.fillRect(475,20,10,550);
 	context.fillRect(700,20,10,550);
 	context.fillRect(300,200,600,10);
 	context.fillRect(300,400,600,10);
-	
+
 	//creating button
 	const path = new Path2D()
 	path.rect(25,72,100,50);
@@ -29,7 +33,7 @@ window.addEventListener("load", ()=>{
 	//	drawing and start a new line 
 	
 	function startPosition(){
-		painting = true; 
+		painting = true; 	
 	}
 	
 	//function for the button 
@@ -47,13 +51,19 @@ window.addEventListener("load", ()=>{
 	  const XY = getXY(canvas, e)
 	  // if button at location is clicked perform clear operation
 	  if(context.isPointInPath(path, XY.x, XY.y)) {
-		 //	Dynamic sizing based on window size
+		
+		//Reset seconds everytime canvas is cleared
+		totalSeconds = 0;
+		
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		//Dynamic sizing based on window size
 		canvas.height = window.innerHeight;
 		canvas.width = window.innerWidth;
 		context.fillRect(475,20,10,550);
 		context.fillRect(700,20,10,550);
 		context.fillRect(300,200,600,10);
 		context.fillRect(300,400,600,10);
+		
 		/*
 		context.fillRect((window.innerWidth/2-150),20,10,600);
 		context.fillRect((window.innerWidth/2+150),20,10,600);
@@ -79,13 +89,14 @@ window.addEventListener("load", ()=>{
 		painting = false;
 		context.beginPath();
 	}
-	
 	//	Drawing function
+	timerVar = setInterval(draw, 1000);
+
 	function draw(e){
 		if(!painting){
+			clearInterval(timerVar);
 			return;
 		}
-		
 		//	line settings
 		context.lineWidth = 10;
 		context.lineCap = "round";
@@ -95,7 +106,12 @@ window.addEventListener("load", ()=>{
 		context.stroke();
 		context.beginPath(); 
 		context.moveTo(e.clientX,e.clientY);
-		
+		context.clearRect(0, 0, 80,40);
+		++totalSeconds;
+		var hour = Math.floor(totalSeconds /3600);
+		var minute = Math.floor((totalSeconds - hour*3600)/23);
+		var seconds = totalSeconds - (hour*3600 + minute*60);
+		context.fillText(minute,40,40,100,50);
 	}
 	
 	//	EventListeners
