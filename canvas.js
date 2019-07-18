@@ -6,11 +6,14 @@ window.addEventListener("load", ()=>{
 	var totalSeconds = 0;
 	var position = 40;
 	
+	var positionArray = [];
+	
 	//	Dynamic sizing based on window size
 	canvas.height = window.innerHeight;
 	canvas.width = window.innerWidth;
-	context.fillRect(475,20,10,550);
-	context.fillRect(700,20,10,550);
+	
+	context.fillRect(475,10,10,600);
+	context.fillRect(700,10,10,600);
 	context.fillRect(300,200,600,10);
 	context.fillRect(300,400,600,10);
 
@@ -51,18 +54,15 @@ window.addEventListener("load", ()=>{
 	  const XY = getXY(canvas, e)
 	  // if button at location is clicked perform clear operation
 	  if(context.isPointInPath(path, XY.x, XY.y)) {
-		
-		//Reset seconds everytime canvas is cleared
-		totalSeconds = 0;
-		
 		context.clearRect(0, 0, canvas.width, canvas.height);
-		//Dynamic sizing based on window size
+		 //	Dynamic sizing based on window size
 		canvas.height = window.innerHeight;
 		canvas.width = window.innerWidth;
-		context.fillRect(475,20,10,550);
-		context.fillRect(700,20,10,550);
+		
+		context.fillRect(475,10,10,600);
+		context.fillRect(700,10,10,600);
 		context.fillRect(300,200,600,10);
-		context.fillRect(300,400,600,10);
+		context.fillRect(300,400,600,10);;
 		
 		/*
 		context.fillRect((window.innerWidth/2-150),20,10,600);
@@ -109,9 +109,12 @@ window.addEventListener("load", ()=>{
 		context.clearRect(0, 0, 80,40);
 		++totalSeconds;
 		var hour = Math.floor(totalSeconds /3600);
-		var minute = Math.floor((totalSeconds - hour*3600)/23);
+		var minute = Math.floor((totalSeconds - hour*3600)/15);
 		var seconds = totalSeconds - (hour*3600 + minute*60);
-		context.fillText(minute,40,40,100,50);
+		
+		//Push the coordinates into an array for use later
+		positionArray[seconds] = e.clientX;
+		context.fillText(positionArray[seconds],40,40,100,50);
 	}
 	
 	//	EventListeners
