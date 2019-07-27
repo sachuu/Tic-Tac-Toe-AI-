@@ -1,43 +1,19 @@
-window.addEventListener("load", ()=>{						
-	//make rectangles all over the titles and track cordinates and have the computer not allow anything outside of it
+ window.addEventListener("load", ()=>{	
+	//variable definiton 
+	var board;
 	const canvas = document.querySelector("#canvas");
 	const context = canvas.getContext("2d"); 	
-	var timerVar;
-	var ai_shape = 0;
-	var win = "";
-	var hard = 0;
-	var totalSeconds = 0;
-	var position = 40;
+	var ai_shape = "";
 	var cc = 0;
 	var pp = 0;
+	var spotss = 0;
 	var i = 0;
 	var lines = 0;
-	var region_count = 0;
 	var drawX = []
 	var drawY = []
 	var positionArrayX = [];
-	var play = "";
 	var board = [];
 	var positionArrayY = [];
-	const winCombos = [  //array thats gonna show winning combinations
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [6, 4, 2]
-]; 
-	var region = [0,1,2,3,4,5,6,7,8];
-	var wincombo1 = [0,1,2];
-	var wincombo2 = [3,4,5];
-	var wincombo3 = [6,7,8];
-	var wincombo4 = [0,3,6];
-	var wincombo5 = [1,4,7];
-	var wincombo6 = [2,5,8];
-	var wincombo7 = [0,4,8];
-	var wincombo8 = [6,4,2];
 	var minX;
 	var maxX;
 	var minY;
@@ -46,17 +22,30 @@ window.addEventListener("load", ()=>{
 	var shape_ai = "";
 	var score = 0;
 	var comp_use = false;
+	//win states
+	const combo = [
+	[0, 1, 2],
+	[3, 4, 5],
+	[6, 7, 8],
+	[0, 3, 6],
+	[1, 4, 7],
+	[2, 5, 8],
+	[0, 4, 8],
+	[6, 4, 2]
+	]
 	
-	//	Dynamic sizing based on window size
+	//arrat given values to signify positions on the board
+	board = Array.from(Array(9).keys());
+	
+	//setting canvas properties 
 	canvas.height = window.innerHeight;
 	canvas.width = window.innerWidth;
-	
 	context.fillRect(475,10,10,600);
 	context.fillRect(700,10,10,600);
 	context.fillRect(300,200,600,10);
 	context.fillRect(300,400,600,10);
 
-	//creating button
+	//creating clear button
 	const path = new Path2D()
 	path.rect(25,72,100,50);
 	path.closePath();
@@ -68,8 +57,8 @@ window.addEventListener("load", ()=>{
 	context.lineWidth = 2
 	context.strokeStyle = "#000000"
 	context.stroke(path)
-	
-	//creating button
+
+	//creating done button
 	const path2 = new Path2D()
 	path2.rect(25,150,100,50);
 	path2.closePath();
@@ -83,16 +72,11 @@ window.addEventListener("load", ()=>{
 	context.strokeStyle = "#000000"
 	context.stroke(path2)
 	
-	let painting = false;
-	
 	//	Whether the user is painting or not is tracked to know when to stop 
 	//	drawing and start a new line 
-	
-	function startPosition(){
-		painting = true; 	
-	}
-	
-	//function for the button 
+	let painting = false;
+
+	//function for the placement of the button 
 	function get_XY(canvas, event){
 	  const rect = canvas.getBoundingClientRect()
 	  const y = event.clientY - rect.top
@@ -119,7 +103,7 @@ window.addEventListener("load", ()=>{
 		context.fillRect(300,200,600,10);
 		context.fillRect(300,400,600,10);
 		
-		//creating button
+		//creating clear button
 		const path = new Path2D()
 		path.rect(25,72,100,50);
 		path.closePath();
@@ -132,7 +116,7 @@ window.addEventListener("load", ()=>{
 		context.strokeStyle = "#000000"
 		context.stroke(path)
 		
-		//creating button
+		//creating done button
 		const path2 = new Path2D()
 		path2.rect(25,150,100,50);
 		path2.closePath();
@@ -150,13 +134,13 @@ window.addEventListener("load", ()=>{
 	  else if (context.isPointInPath(path2, XY.x, XY.y))
 	  {
 
-	  	//Storing the max / min of the x/y coordinates to determine what range the values are in
+		//Storing the max / min of the x/y coordinates to determine what range the values are in
 		//context.fillText(regionNum,250,182,100,50);
 
 		  //context.fillText(positionArrayX.length,230,40,100,50);
-		  const intercep = compare(positionArrayX,positionArrayY);
+		  //const intercep = compare(positionArrayX,positionArrayY);
 		 
-          if (lines == 3 || lines == 4)
+		  if (lines == 3 || lines == 4)
 		  {
 			  win = "";
 			  shape_drawn = "x";
@@ -171,118 +155,187 @@ window.addEventListener("load", ()=>{
 			  shape_ai = "x";
 			  comp_use = true;
 		  }
+		  else
+		  {
+			  alert("letter was not recognized please try again");
+		  }
 		minX = Math.min(...drawX);
-	  	maxX = Math.max(...drawX);
-	  	minY = Math.min(...drawY);
-	  	maxY = Math.max(...drawY);
-	  	if((minX > 270 && maxX < 490) && (minY > 25 && maxY < 205)){
-	  		region[0] = shape_drawn;
-			region_count++;
-	  	}
+		maxX = Math.max(...drawX);
+		minY = Math.min(...drawY);
+		maxY = Math.max(...drawY);
+		spots = spotsleft();
+		//First Row
+		if((minX > 270 && maxX < 490) && (minY > 25 && maxY < 205)){
+			board[0] = shape_drawn;
+			if (win_state(board,shape_drawn))
+			{
+				score = -10;
+				display_result(score);
+			}
+			else if (spots.length == 0)
+			{
+				score = 0;
+				display_result(score);
+			}
+		}
 
 		else if((minX > 480 && maxX < 700) && (minY > 25 && maxY < 200)){
-			region[1] = shape_drawn;
-			region_count++;
+			board[1] = shape_drawn;
+			if (win_state(board,shape_drawn))
+			{
+				score = -10;
+				display_result(score);
+			}
+			else if (spots.length == 0)
+			{
+				score = 0;
+				display_result(score);
+			}
 		}
 
 		else if((minX > 700 && maxX < 900) && (minY > 25 && maxY < 200)){
-			region[2] = shape_drawn;
-			region_count++;
+			board[2] = shape_drawn;
+			if (win_state(board,shape_drawn))
+			{
+				score = -10;
+				display_result(score);
+			}
+			else if (spots.length == 0)
+			{
+				score = 0;
+				display_result(score);
+			}
 		}
 
 		//Second Row
 		else if((minX > 300 && maxX < 480) && (minY > 200 && maxY < 400)){
-			region[3] = shape_drawn;
-			region_count++;
+			board[3] = shape_drawn;
+			if (win_state(board,shape_drawn))
+			{
+				score = -10;
+				display_result(score);
+			}
+			else if (spots.length == 0)
+			{
+				score = 0;
+				display_result(score);
+			}
 		}
 
 		else if((minX > 480 && maxX < 700) && (minY > 200 && maxY < 400)){
-			region[4] = shape_drawn;
-			region_count++;
+			board[4] = shape_drawn;
+			if (win_state(board,shape_drawn))
+			{
+				score = -10;
+				display_result(score);
+			}
+			else if (spots.length == 0)
+			{
+				score = 0;
+				display_result(score);
+			}
 		}
 
 		else if((minX > 700 && maxX < 900) && (minY > 200 && maxY < 400)){
-			region[5] = shape_drawn;
-			region_count++;
+			board[5] = shape_drawn;
+			if (win_state(board,shape_drawn))
+			{
+				score = -10;
+				display_result(score);
+			}
+			else if (spots.length == 0)
+			{
+				score = 0;
+				display_result(score);
+			}
 		}
 
 		//Third Row
 		else if((minX > 300 && maxX < 480) && (minY > 400 && maxY < 600)){
-			region[6] = shape_drawn;
-			region_count++;
+			board[6] = shape_drawn;
+			if (win_state(board,shape_drawn))
+			{
+				score = -10;
+				display_result(score);
+			}
+			else if (spots.length == 0)
+			{
+				score = 0;
+				display_result(score);
+			}
 		}
 
 		else if((minX > 480 && maxX < 700) && (minY > 400 && maxY < 600)){
-			region[7] = shape_drawn;
-			region_count++;
+			board[7] = shape_drawn;
+			if (win_state(board,shape_drawn))
+			{
+				score = -10;
+				display_result(score);
+			}
+			else if (spots.length == 0)
+			{
+				score = 0;
+				display_result(score);
+			}
 		}
 
 		else if((minX > 700 && maxX < 900) && (minY > 400 && maxY < 600)){
-			region[8] = shape_drawn;
-			region_count++;
+			board[8] = shape_drawn;
+			if (win_state(board,shape_drawn))
+			{
+				score = -10;
+				display_result(score);
+			}
+			else if (spots.length == 0)
+			{
+				score = 0;
+				display_result(score);
+			}
 		}
 		drawX = [];
 		drawY = [];
 		pp = 0;
 		lines = 0;
-	    if (comp_use == true)
-	    {
+		//if shape is recognized continue 
+		if (comp_use == true)
+		{
 		  comp_use = false;
-		  drawShape(region_count,shape_drawn,shape_ai,region);
-	    }
+		  drawShape(shape_drawn,shape_ai,board);
+		}
 	  }
 	}, false)
 	
-	function finishedPosition(){
-		painting = false;
-		context.beginPath();
-		lines = lines + 1;
-	}
-	function empty(board)
+	function display_result(score)
 	{
-		/*
-		aval = []
-		var aval_c = 0;
-		for (i = 0; i < region.length; i++)
+		if (score == -10)
 		{
-			if (region[i].toString().localeCompare("x") != 0 && region[i].toString().localeCompare("o") != 0)
-			{
-				aval[aval_c] = i;
-				aval_c++;
-			}
+			alert("You beat the AI congrats!");
 		}
-		return aval;*/
-		return board.filter(s => typeof s === 'number');
-	}
-	function array_equal(arr1,arr2)
-	{
-		for (i = 0; i < arr1.length; i++)
+		else if (score == 10)
 		{
-			if (arr1[i].toString().localeCompare("x") == 0)
-			{
-				arr2[i] = "x";
-			}
-			else if (arr1[i].toString().localeCompare("o") == 0)
-			{
-				arr2[i] = "o";
-			}
-			else 
-			{
-				arr2[i] = i;
-			}
+			alert("You lose, please try again");
 		}
-		return arr2;
+		else if (score == 0)
+		{
+			alert("Tie game!");
+		}
 	}
-	function drawShape(region_count,shape_drawn,shape_ai,region)
+	//Draws the AI's move based on the optimal move determined by minimax algorithm
+	function drawShape(shape_drawn,shape_ai,board)
 	{
-		new_board = [];
-		new_board = array_equal(region,new_board);
-		console.log(new_board);
-		var region_place = algo(shape_ai,new_board,shape_ai,shape_drawn);
-		//console.log(region_place);
-		region_place = region_place.index;
-		region[region_place] = shape_ai;		
-		region_count++;
+		var region_place = algo(board, shape_ai).index;
+		spots = spotsleft();
+		board[region_place] = shape_ai;		
+		if (win_state(board,shape_ai))
+		{
+			score = 10;
+			display_result(score);
+		}
+		else if (spots.length == 0)
+		{
+			score = 0;
+			display_result(score);
+		}
 		if (shape_ai == "x")
 		{
 			var source = "x.png"
@@ -349,148 +402,55 @@ window.addEventListener("load", ()=>{
 			x.src = source;
 			context.drawImage(x,710,420,175,175);
 		}
-		//console.log(region);
 	}
 	
-	function winCheck(board,player)
-	{
-		let plays = board.reduce((a, e, i) => (e === player) ? a.concat(i) : a, []); //finding every index that the player has played
-		let gameWon = null;
-		for (let [index, win] of winCombos.entries()) { //checking if the game has been won by looping through every winCombos
-			if (win.every(elem => plays.indexOf(elem) > -1)) { //has the player played in every spot that counts as a win for that win
-				  win = {index: index, player: player};  //which win combo the player won at & which player had won
-				  break;
-			}
+	//checks if the win states are met by either player
+	function win_state(board, player) {
+	let plays = board.reduce((a, e, i) =>
+		(e === player) ? a.concat(i) : a, []);
+	let winner = null;
+	for (let [index, win] of combo.entries()) {
+		if (win.every(elem => plays.indexOf(elem) > -1)) {
+			winner = {index: index, player: player};
+			break;
 		}
-		return win;
+	}
+	return winner;
 	}
 
-	function outputResult(score)
-	{
-		if (score == 10)
+	//checks how many spotss left to fill on the board 
+	function spotsleft() {
+		aval = []
+		var aval_c = 0;
+		for (i = 0; i < board.length; i++)
 		{
-			alert("You lose the game!");
-		}
-		else if (score == -10)
-		{
-			alert("You win the game!");
-		}
-		else if (score == 0)
-		{
-			alert("Tie game!");
-		}
-	}
-	function algo(play,board,shape_ai,shape_drawn)
-	{
-		aval = empty(board);
-		if (region_count == 0)
-		{
-			return;
-		}
-		else 
-		{
-			if (winCheck(board,shape_drawn))
+			if (board[i].toString().localeCompare("x") != 0 && board[i].toString().localeCompare("o") != 0)
 			{
-				if (aval.length == 0)
-				{
-					outputResult(score = -10);
-				}
-				else 
-				{
-					return {score: -10};
-				}
-				
-			}
-			else if (winCheck(board,shape_ai))
-			{
-				if (aval.length == 0)
-				{
-					outputResult(score = 10);
-				}
-				else 
-				{
-					return {score: 10};
-				}
-			}
-			else if (aval.length == 0)
-			{
-				if (region_count == 9)
-				{
-					outputResult(score = 0);
-				}
-				return {score: 0};
-			}
-			var moves = [];
-			for (var i = 0; i < aval.length; i++) {
-				var move = {};
-				move.index = board[aval[i]];
-				board[aval[i]] = play;
-				if (play == shape_ai) 
-				{
-					var result = algo(shape_drawn,board,shape_ai,shape_drawn);
-					move.score = result.score;
-				} 
-				else 
-				{
-					var result = algo(shape_ai,board,shape_ai,shape_drawn)
-					move.score = result.score;
-				}	
-				board[aval[i]] = move.index;
-				moves.push(move);
-			}	
-				var bestMove;
-				if(play === shape_ai) {
-					var bestScore = -10000;
-					for(var i = 0; i < moves.length; i++) {
-						
-						if (moves[i].score > bestScore) {
-							bestScore = moves[i].score;
-							bestMove = i;
-						}
-					}
-				}			
-				else 
-				{
-					var bestScore = 10000;
-					for(var i = 0; i < moves.length; i++) {
-						if (moves[i].score < bestScore) {
-							bestScore = moves[i].score;
-							bestMove = i;
-						}
-					}
-				}
-			return moves[bestMove];
-		 }  
-	}
-	function compare(positionArrayX,positionArrayY){
-
-		i = 0;
-		var j = 0;
-		var positioner = 0;
-		var intercepts = 0; 
-
-		for(i=0;i < positionArrayX.length;i++){
-			for(j= i + 1;j<positionArrayX.length;j++){
-				if(positionArrayX[j] === positionArrayX[i] && i != j)
-				{
-					if ((positionArrayY[j] === positionArrayY[i]))
-					{
-						intercepts++;
-					}
-				}
+				aval[aval_c] = i;
+				aval_c++;
 			}
 		}
-		return intercepts
+		return aval;
 	}
+	//when the user clicks allow the draw function to draw
+	function startPosition(){
+		painting = true; 	
+	}
+	
+	//when the user stops the press stops the draw function from continuing 
+	function finishedPosition(){
+		painting = false;
+		context.beginPath();
+		lines = lines + 1;
+	}
+	
+	//Function that draws the user's move 
 	function draw(e){
 		if(!painting){
 			return;
 		}
-		//	line settings
 		context.lineWidth =  20;
 		context.lineCap = "round";
-		
-		//	actual drawing starts
 		context.lineTo(e.clientX, e.clientY);
 		context.stroke();
 		context.beginPath(); 
@@ -509,9 +469,60 @@ window.addEventListener("load", ()=>{
 		cc++;
 		pp++;
 	}
-	
-	//	EventListeners
+
+	//Event Listeners to check for mouse click to draw and stop when button is not pressed
 	canvas.addEventListener("mousedown", startPosition);
 	canvas.addEventListener("mouseup", finishedPosition);
 	canvas.addEventListener("mousemove",draw);
+
+	//minimax algorithm used to determine which move is effect for the AI given that the user is playing optimally 
+	function algo(newBoard, player) {
+		var aval = spotsleft();
+		if (win_state(newBoard, shape_drawn)) {
+			return {score: -10};
+		} else if (win_state(newBoard, shape_ai)) {
+			return {score: 10};
+		} else if (aval.length === 0) {
+			return {score: 0};
+		}
+		var moves = [];
+		for (var i = 0; i < aval.length; i++) {
+			var move = {};
+			move.index = newBoard[aval[i]];
+			newBoard[aval[i]] = player;
+
+			if (player == shape_ai) {
+				var result = algo(newBoard, shape_drawn);
+				move.score = result.score;
+			} else {
+				var result = algo(newBoard, shape_ai);
+				move.score = result.score;
+			}
+
+			newBoard[aval[i]] = move.index;
+
+			moves.push(move);
+		}
+
+		var bestMove;
+		if(player === shape_ai) {
+			var bestScore = -10000;
+			for(var i = 0; i < moves.length; i++) {
+				if (moves[i].score > bestScore) {
+					bestScore = moves[i].score;
+					bestMove = i;
+				}
+			}
+		} else {
+			var bestScore = 10000;
+			for(var i = 0; i < moves.length; i++) {
+				if (moves[i].score < bestScore) {
+					bestScore = moves[i].score;
+					bestMove = i;
+				}
+			}
+		}
+		return moves[bestMove];
+	}
 });
+
