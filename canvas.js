@@ -34,7 +34,7 @@
 	[6, 4, 2]
 	]
 	
-	//arrat given values to signify positions on the board
+	//array given values to signify positions on the board
 	board = Array.from(Array(9).keys());
 	
 	//setting canvas properties 
