@@ -1,19 +1,25 @@
  window.addEventListener("load", ()=>{	
+ 
 	//variable definiton 
 	var board;
 	const canvas = document.querySelector("#canvas");
 	const context = canvas.getContext("2d"); 	
 	var ai_shape = "";
+	var timer = 0;
 	var cc = 0;
+	var res = [];
 	var pp = 0;
 	var spotss = 0;
 	var i = 0;
 	var lines = 0;
 	var drawX = []
 	var drawY = []
+	var unrecog = false;
 	var positionArrayX = [];
+	var positionArrayX1
 	var board = [];
 	var positionArrayY = [];
+	var positionArrayY1 = [];
 	var minX;
 	var maxX;
 	var minY;
@@ -22,6 +28,14 @@
 	var shape_ai = "";
 	var score = 0;
 	var comp_use = false;
+	var count = 0;
+	const path = new Path2D();
+	const path2 = new Path2D();
+	
+	//	Whether the user is painting or not is tracked to know when to stop 
+	//	drawing and start a new line 
+	let painting = false;
+	
 	//win states
 	const combo = [
 	[0, 1, 2],
@@ -34,47 +48,50 @@
 	[6, 4, 2]
 	]
 	
-	//array given values to signify positions on the board
-	board = Array.from(Array(9).keys());
-	
-	//setting canvas properties 
-	canvas.height = window.innerHeight;
-	canvas.width = window.innerWidth;
-	context.fillRect(475,10,10,600);
-	context.fillRect(700,10,10,600);
-	context.fillRect(300,200,600,10);
-	context.fillRect(300,400,600,10);
+	//begins game
+	start();
 
-	//creating clear button
-	const path = new Path2D()
-	path.rect(25,72,100,50);
-	path.closePath();
-	context.font = "20px Arial";
-	context.fillText("Clear",45,100,100,50);
-	context.fillStyle = "#FFFFFF"
-	context.fillStyle = "rgba(225,225,225,0.5)"
-	context.fill(path)
-	context.lineWidth = 2
-	context.strokeStyle = "#000000"
-	context.stroke(path)
+	//intial board state
+	function start()
+	{
+		//array given values to signify positions on the board
+		board = Array.from(Array(9).keys());
+		//setting canvas properties 
+		context.fillStyle = "#F0FFFF";
+		context.fillRect(0, 0, 1000, 700);
+		context.fillStyle = "black";
+		context.fillRect(475,10,10,600);
+		context.fillRect(700,10,10,600);
+		context.fillRect(300,200,600,10);
+		context.fillRect(300,400,600,10);
 
-	//creating done button
-	const path2 = new Path2D()
-	path2.rect(25,150,100,50);
-	path2.closePath();
-	context.font = "20px Arial";
-	context.fillStyle = "#000000"
-	context.fillText("Done",50,182,100,50);
-	context.fillStyle = "#FFFFFF"
-	context.fillStyle = "rgba(225,225,225,0.5)"
-	context.fill(path2)
-	context.lineWidth = 2
-	context.strokeStyle = "#000000"
-	context.stroke(path2)
-	
-	//	Whether the user is painting or not is tracked to know when to stop 
-	//	drawing and start a new line 
-	let painting = false;
+		//creating clear button
+		//path = new Path2D()
+		path.rect(25,72,100,50);
+		path.closePath();
+		context.font = "20px Arial";
+		context.fillText("Clear",45,100,100,50);
+		context.fillStyle = "#FFFFFF"
+		context.fillStyle = "rgba(225,225,225,0.5)"
+		context.fill(path)
+		context.lineWidth = 2
+		context.strokeStyle = "#000000"
+		context.stroke(path)
+
+		//creating done button
+		//path2 = new Path2D()
+		path2.rect(25,150,100,50);
+		path2.closePath();
+		context.font = "20px Arial";
+		context.fillStyle = "#000000"
+		context.fillText("Done",50,182,100,50);
+		context.fillStyle = "#FFFFFF"
+		context.fillStyle = "rgba(225,225,225,0.5)"
+		context.fill(path2)
+		context.lineWidth = 2
+		context.strokeStyle = "#000000"
+		context.stroke(path2)
+	}
 
 	//function for the placement of the button 
 	function get_XY(canvas, event){
@@ -92,65 +109,31 @@
 	  // if button at location is clicked perform clear operation
 	  if(context.isPointInPath(path, XY.x, XY.y)) {
 		cc = 0;
-		context.clearRect(0, 0, canvas.width, canvas.height);
-		
-		//	Dynamic sizing based on window size
-		canvas.height = window.innerHeight+150;
-		canvas.width = window.innerWidth+150;
-		
-		context.fillRect(475,10,10,600);
-		context.fillRect(700,10,10,600);
-		context.fillRect(300,200,600,10);
-		context.fillRect(300,400,600,10);
-		
-		//creating clear button
-		const path = new Path2D()
-		path.rect(25,72,100,50);
-		path.closePath();
-		context.font = "20px Arial";
-		context.fillText("Clear",45,100,100,50);
-		context.fillStyle = "#FFFFFF"
-		context.fillStyle = "rgba(225,225,225,0.5)"
-		context.fill(path)
-		context.lineWidth = 2
-		context.strokeStyle = "#000000"
-		context.stroke(path)
-		
-		//creating done button
-		const path2 = new Path2D()
-		path2.rect(25,150,100,50);
-		path2.closePath();
-		context.font = "20px Arial";
-		context.fillStyle = "#000000"
-		context.fillText("Done",50,182,100,50);
-		context.fillStyle = "#FFFFFF"
-		context.fillStyle = "rgba(225,225,225,0.5)"
-		context.fill(path2)
-		context.lineWidth = 2
-		context.strokeStyle = "#000000"
-		context.stroke(path2)
+		count = 0;
+		positionArrayX = [];
+		positionArrayX1 = [];
+		positionArrayY = [];
+		positionArrayY1 = [];
+		drawX = [];
+		drawY = [];
+		res = [];
+		start();
 	  }
-
 	  else if (context.isPointInPath(path2, XY.x, XY.y))
 	  {
 
 		//Storing the max / min of the x/y coordinates to determine what range the values are in
-		//context.fillText(regionNum,250,182,100,50);
+		 const intercep = compare(positionArrayX,positionArrayY);
 
-		  //context.fillText(positionArrayX.length,230,40,100,50);
-		  //const intercep = compare(positionArrayX,positionArrayY);
-		 
-		  if (lines == 3 || lines == 4)
+			if (intercep == "x")
 		  {
-			  win = "";
 			  shape_drawn = "x";
 			  shape_ai = "o";
 			  comp_use = true;
 			  
 		  }
-		  else if (lines == 1 || lines == 2)
+			else if (intercep == "c")
 		  {
-			  win = "";
 			  shape_drawn = "o";
 			  shape_ai = "x";
 			  comp_use = true;
@@ -158,142 +141,225 @@
 		  else
 		  {
 			  alert("letter was not recognized please try again");
+			  unrecog = true;
 		  }
+		  
+		//Storing the max / min of the x/y coordinates to determine what range the values are in
 		minX = Math.min(...drawX);
 		maxX = Math.max(...drawX);
 		minY = Math.min(...drawY);
 		maxY = Math.max(...drawY);
+		
+		//Checking if we should draw shape at location
 		spots = spotsleft();
+		
 		//First Row
 		if((minX > 270 && maxX < 490) && (minY > 25 && maxY < 205)){
 			board[0] = shape_drawn;
-			if (win_state(board,shape_drawn))
+			if(unrecog == false)
 			{
-				score = -10;
-				display_result(score);
+				if (win_state(board,shape_drawn))
+				{
+					score = -10;
+					display_result(score);
+				}
+				else if (spots.length == 0)
+				{
+					score = 0;
+					display_result(score);
+				}
 			}
-			else if (spots.length == 0)
+			else 
 			{
-				score = 0;
-				display_result(score);
+				context.clearRect(270, 25, 200, 175);
+				unrecog = false;
 			}
 		}
 
 		else if((minX > 480 && maxX < 700) && (minY > 25 && maxY < 200)){
 			board[1] = shape_drawn;
-			if (win_state(board,shape_drawn))
+			if(unrecog == false)
 			{
-				score = -10;
-				display_result(score);
+				if (win_state(board,shape_drawn))
+				{
+					score = -10;
+					display_result(score);
+				}
+				else if (spots.length == 0)
+				{
+					score = 0;
+					display_result(score);
+				}
 			}
-			else if (spots.length == 0)
+			else 
 			{
-				score = 0;
-				display_result(score);
+				context.clearRect(500, 25, 200, 175);
+				unrecog = false;
 			}
 		}
 
 		else if((minX > 700 && maxX < 900) && (minY > 25 && maxY < 200)){
 			board[2] = shape_drawn;
-			if (win_state(board,shape_drawn))
+			if(unrecog == false)
 			{
-				score = -10;
-				display_result(score);
+				if (win_state(board,shape_drawn))
+				{
+					score = -10;
+					display_result(score);
+				}
+				else if (spots.length == 0)
+				{
+					score = 0;
+					display_result(score);
+				}
 			}
-			else if (spots.length == 0)
+			else 
 			{
-				score = 0;
-				display_result(score);
+				context.clearRect(724, 25, 200, 175);
+				unrecog = false;
 			}
 		}
 
 		//Second Row
 		else if((minX > 300 && maxX < 480) && (minY > 200 && maxY < 400)){
 			board[3] = shape_drawn;
-			if (win_state(board,shape_drawn))
+			if(unrecog == false)
 			{
-				score = -10;
-				display_result(score);
+				if (win_state(board,shape_drawn))
+				{
+					score = -10;
+					display_result(score);
+				}
+				else if (spots.length == 0)
+				{
+					score = 0;
+					display_result(score);
+				}
 			}
-			else if (spots.length == 0)
+			else 
 			{
-				score = 0;
-				display_result(score);
+				context.clearRect(275, 210, 200, 180);
+				unrecog = false;
 			}
 		}
 
 		else if((minX > 480 && maxX < 700) && (minY > 200 && maxY < 400)){
 			board[4] = shape_drawn;
-			if (win_state(board,shape_drawn))
+			if(unrecog == false)
 			{
-				score = -10;
-				display_result(score);
+				if (win_state(board,shape_drawn))
+				{
+					score = -10;
+					display_result(score);
+				}
+				else if (spots.length == 0)
+				{
+					score = 0;
+					display_result(score);
+				}
 			}
-			else if (spots.length == 0)
+			else 
 			{
-				score = 0;
-				display_result(score);
+				context.clearRect(495, 210, 200, 180);
+				unrecog = false;
 			}
 		}
 
 		else if((minX > 700 && maxX < 900) && (minY > 200 && maxY < 400)){
 			board[5] = shape_drawn;
-			if (win_state(board,shape_drawn))
+			if(unrecog == false)
 			{
-				score = -10;
-				display_result(score);
+				if (win_state(board,shape_drawn))
+				{
+					score = -10;
+					display_result(score);
+				}
+				else if (spots.length == 0)
+				{
+					score = 0;
+					display_result(score);
+				}
 			}
-			else if (spots.length == 0)
+			else 
 			{
-				score = 0;
-				display_result(score);
+				context.clearRect(720, 210, 200, 180);
+				unrecog = false;
 			}
 		}
 
 		//Third Row
 		else if((minX > 300 && maxX < 480) && (minY > 400 && maxY < 600)){
 			board[6] = shape_drawn;
-			if (win_state(board,shape_drawn))
+			if(unrecog == false)
 			{
-				score = -10;
-				display_result(score);
+				if (win_state(board,shape_drawn))
+				{
+					score = -10;
+					display_result(score);
+				}
+				else if (spots.length == 0)
+				{
+					score = 0;
+					display_result(score);
+				}
 			}
-			else if (spots.length == 0)
+			else 
 			{
-				score = 0;
-				display_result(score);
+				context.clearRect(275, 415, 200, 180);
+				unrecog = false;
 			}
 		}
 
 		else if((minX > 480 && maxX < 700) && (minY > 400 && maxY < 600)){
 			board[7] = shape_drawn;
-			if (win_state(board,shape_drawn))
+			if(unrecog == false)
 			{
-				score = -10;
-				display_result(score);
+				if (win_state(board,shape_drawn))
+				{
+					score = -10;
+					display_result(score);
+				}
+				else if (spots.length == 0)
+				{
+					score = 0;
+					display_result(score);
+				}
 			}
-			else if (spots.length == 0)
+			else 
 			{
-				score = 0;
-				display_result(score);
+				context.clearRect(500, 420, 200, 180);
+				unrecog = false;
 			}
 		}
 
 		else if((minX > 700 && maxX < 900) && (minY > 400 && maxY < 600)){
 			board[8] = shape_drawn;
-			if (win_state(board,shape_drawn))
+			if(unrecog == false)
 			{
-				score = -10;
-				display_result(score);
+				if (win_state(board,shape_drawn))
+				{
+					score = -10;
+					display_result(score);
+				}
+				else if (spots.length == 0)
+				{
+					score = 0;
+					display_result(score);
+				}
 			}
-			else if (spots.length == 0)
+			else 
 			{
-				score = 0;
-				display_result(score);
+				context.clearRect(720, 420, 200, 180);
+				unrecog = false;
 			}
 		}
 		drawX = [];
 		drawY = [];
+		positionArrayX1 = [];
+		positionArrayY1 = [];
+		positionArrayX = [];
+		positionArrayY = [];
+		cc = 0;
 		pp = 0;
 		lines = 0;
 		//if shape is recognized continue 
@@ -305,19 +371,23 @@
 	  }
 	}, false)
 	
+	
 	function display_result(score)
 	{
 		if (score == -10)
 		{
 			alert("You beat the AI congrats!");
+			start();
 		}
 		else if (score == 10)
 		{
 			alert("You lose, please try again");
+			start();
 		}
 		else if (score == 0)
 		{
 			alert("Tie game!");
+			start();
 		}
 	}
 	//Draws the AI's move based on the optimal move determined by minimax algorithm
@@ -326,16 +396,6 @@
 		var region_place = algo(board, shape_ai).index;
 		spots = spotsleft();
 		board[region_place] = shape_ai;		
-		if (win_state(board,shape_ai))
-		{
-			score = 10;
-			display_result(score);
-		}
-		else if (spots.length == 0)
-		{
-			score = 0;
-			display_result(score);
-		}
 		if (shape_ai == "x")
 		{
 			var source = "x.png"
@@ -402,6 +462,16 @@
 			x.src = source;
 			context.drawImage(x,710,420,175,175);
 		}
+		if (win_state(board,shape_ai))
+		{
+			score = 10;
+			display_result(score);
+		}
+		else if (spots.length == 0)
+		{
+			score = 0;
+			display_result(score);
+		}
 	}
 	
 	//checks if the win states are met by either player
@@ -441,7 +511,22 @@
 	function finishedPosition(){
 		painting = false;
 		context.beginPath();
-		lines = lines + 1;
+		if (Math.abs(res[count - 1] - cc) > 10 || res[count - 1] == cc)
+		{
+			if (lines == 0)
+			{
+				lines = lines + 1;
+				positionArrayY1 = positionArrayY;
+				positionArrayX1 = positionArrayX;
+				positionArrayX = [];
+				positionArrayY = [];
+				cc = 0;
+			}
+			else 
+			{
+				lines = lines + 1;
+			}
+		}
 	}
 	
 	//Function that draws the user's move 
@@ -455,25 +540,59 @@
 		context.stroke();
 		context.beginPath(); 
 		context.moveTo(e.clientX,e.clientY);
-		positionArrayX[cc] = e.clientX;
-		positionArrayY[cc] = e.clientY;
+		if (timer == 1)
+		{
+			positionArrayX[cc] = e.clientX;
+			positionArrayY[cc] = e.clientY;
+			cc++;
+			timer = 0;
+		}
 		drawX[pp] = e.clientX;
 		drawY[pp] = e.clientY;
-		
-		context.clearRect(0, 0, 250,50);
-		context.fillText("(",30,40,100,50);
-		context.fillText(positionArrayX[cc],35,40,100,50);
-		context.fillText(",",70,40,100,50);
-		context.fillText(positionArrayY[cc],75,40,100,50);
-		context.fillText(")",110,40,100,50);
-		cc++;
 		pp++;
+		timer++;
+		res[count] = cc;
+		count++;
 	}
 
 	//Event Listeners to check for mouse click to draw and stop when button is not pressed
 	canvas.addEventListener("mousedown", startPosition);
 	canvas.addEventListener("mouseup", finishedPosition);
 	canvas.addEventListener("mousemove",draw);
+	
+	function compare(positionArrayX,positionArrayY)
+	{
+		var intercept = "";
+		for (var i = 0; i < positionArrayX1.length; i++)
+		{
+			for (var j = 0; j < positionArrayX1.length; j++)
+			{
+				if (positionArrayX1[i] === positionArrayX1[j] && i != j )
+				{
+					if (positionArrayY1[i] === positionArrayY1[j])
+					{
+						if (positionArrayX.length > 30)
+						{
+							var max_num = Math.abs(Math.max(...positionArrayY1) - Math.max(...positionArrayY));
+							var min_num = Math.abs(Math.min(...positionArrayY1) - Math.min(...positionArrayY));
+							if(max_num >= 0 && max_num < 15 && min_num >= 0 && min_num < 15)
+							{
+								intercept = "x";
+							}
+						}
+						else 
+						{
+							if(Math.abs(positionArrayX1[positionArrayX1.length - 1] - Math.max(...positionArrayX1)) > 5)
+							{
+								intercept = "c";
+							}
+						}
+					}
+				}
+			}
+		}
+		return intercept;
+	}
 
 	//minimax algorithm used to determine which move is effect for the AI given that the user is playing optimally 
 	function algo(newBoard, player) {
@@ -525,4 +644,3 @@
 		return moves[bestMove];
 	}
 });
-
