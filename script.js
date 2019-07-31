@@ -1,4 +1,4 @@
- window.addEventListener("load", ()=>{	
+window.addEventListener("load", ()=>{	
  
 	//variable definiton 
 	var board;
@@ -7,6 +7,7 @@
 	var ai_shape = "";
 	var timer = 0;
 	var cc = 0;
+	positionArray = [];
 	var res = [];
 	var pp = 0;
 	var spotss = 0;
@@ -50,14 +51,22 @@
 	
 	//begins game
 	start();
-
 	//intial board state
 	function start()
 	{
 		//array given values to signify positions on the board
 		board = Array.from(Array(9).keys());
+		cc = 0;
+		count = 0;
+		positionArrayX = [];
+		positionArrayX1 = [];
+		positionArrayY = [];
+		positionArrayY1 = [];
+		drawX = [];
+		drawY = [];
+		res = [];
 		//setting canvas properties 
-		context.fillStyle = "#F0FFFF";
+		context.fillStyle = "white";
 		context.fillRect(0, 0, 1000, 700);
 		context.fillStyle = "black";
 		context.fillRect(475,10,10,600);
@@ -108,20 +117,10 @@
 	  const XY = get_XY(canvas, e)
 	  // if button at location is clicked perform clear operation
 	  if(context.isPointInPath(path, XY.x, XY.y)) {
-		cc = 0;
-		count = 0;
-		positionArrayX = [];
-		positionArrayX1 = [];
-		positionArrayY = [];
-		positionArrayY1 = [];
-		drawX = [];
-		drawY = [];
-		res = [];
 		start();
 	  }
 	  else if (context.isPointInPath(path2, XY.x, XY.y))
 	  {
-
 		//Storing the max / min of the x/y coordinates to determine what range the values are in
 		 const intercep = compare(positionArrayX,positionArrayY);
 
@@ -171,6 +170,7 @@
 			}
 			else 
 			{
+				context.fillStyle = "white";
 				context.clearRect(270, 25, 200, 175);
 				unrecog = false;
 			}
@@ -193,6 +193,7 @@
 			}
 			else 
 			{
+				context.fillStyle = "white";
 				context.clearRect(500, 25, 200, 175);
 				unrecog = false;
 			}
@@ -215,6 +216,7 @@
 			}
 			else 
 			{
+				context.fillStyle = "white";
 				context.clearRect(724, 25, 200, 175);
 				unrecog = false;
 			}
@@ -238,6 +240,7 @@
 			}
 			else 
 			{
+				context.fillStyle = "white";
 				context.clearRect(275, 210, 200, 180);
 				unrecog = false;
 			}
@@ -260,6 +263,7 @@
 			}
 			else 
 			{
+				context.fillStyle = "white";
 				context.clearRect(495, 210, 200, 180);
 				unrecog = false;
 			}
@@ -282,6 +286,7 @@
 			}
 			else 
 			{
+				context.fillStyle = "white";
 				context.clearRect(720, 210, 200, 180);
 				unrecog = false;
 			}
@@ -327,6 +332,7 @@
 			}
 			else 
 			{
+				context.fillStyle = "white";
 				context.clearRect(500, 420, 200, 180);
 				unrecog = false;
 			}
@@ -349,6 +355,7 @@
 			}
 			else 
 			{
+				context.fillStyle = "white";
 				context.clearRect(720, 420, 200, 180);
 				unrecog = false;
 			}
@@ -505,27 +512,28 @@
 	//when the user clicks allow the draw function to draw
 	function startPosition(){
 		painting = true; 	
+		res[count] = cc;
+		count++;
 	}
 	
 	//when the user stops the press stops the draw function from continuing 
 	function finishedPosition(){
 		painting = false;
 		context.beginPath();
-		if (Math.abs(res[count - 1] - cc) > 10 || res[count - 1] == cc)
+		if (lines == 0 && cc > 20)
 		{
-			if (lines == 0)
-			{
-				lines = lines + 1;
-				positionArrayY1 = positionArrayY;
-				positionArrayX1 = positionArrayX;
-				positionArrayX = [];
-				positionArrayY = [];
-				cc = 0;
-			}
-			else 
-			{
-				lines = lines + 1;
-			}
+			lines = lines + 1;
+			positionArrayY1 = positionArrayY;
+			positionArrayX1 = positionArrayX;
+			positionArrayX = [];
+			positionArrayY = [];
+			console.log(lines);
+			cc = 0;
+		}
+		else if (Math.abs(res[count - 1] - cc) > 10)
+		{
+			lines = lines + 1;
+			console.log(lines);
 		}
 	}
 	
@@ -540,19 +548,15 @@
 		context.stroke();
 		context.beginPath(); 
 		context.moveTo(e.clientX,e.clientY);
-		if (timer == 1)
-		{
-			positionArrayX[cc] = e.clientX;
-			positionArrayY[cc] = e.clientY;
-			cc++;
-			timer = 0;
-		}
+		positionArrayX[cc] = e.clientX;
+		positionArrayY[cc] = e.clientY;
+		
+		cc++;
+
 		drawX[pp] = e.clientX;
 		drawY[pp] = e.clientY;
 		pp++;
 		timer++;
-		res[count] = cc;
-		count++;
 	}
 
 	//Event Listeners to check for mouse click to draw and stop when button is not pressed
@@ -563,35 +567,90 @@
 	function compare(positionArrayX,positionArrayY)
 	{
 		var intercept = "";
-		for (var i = 0; i < positionArrayX1.length; i++)
-		{
-			for (var j = 0; j < positionArrayX1.length; j++)
+
+		// The points tally if the characteristics are in favor of the drawing being an X or O 
+		// +1 if it seems like an X and -1 if it seems like a cricle 
+		// At the end if the points are above 0 it's an X otherwise it's a circle 
+
+		var points = 0;
+		
+		if(positionArrayX1[0] != undefined){
+
+			//Characteristic 1: X coordinates
+
+			if(positionArrayX1[0] != undefined){
+				if(((positionArrayX1[0] - (positionArrayX1[positionArrayX1.length-1]) > -5) && (positionArrayX1[0] - (positionArrayX1[positionArrayX1.length-1])) < 0) || ((positionArrayX1[0] - (positionArrayX1[positionArrayX1.length-1]) > -5) && (positionArrayX1[0] - (positionArrayX1[positionArrayX1.length-1])) < 0)){
+					points -= 1;
+					console.log("Coordinates suggest: O");
+				}
+			}
+			else{
+				points += 1;
+				console.log("Coordinates suggests: X");
+			}
+
+			//Characteritic 2: Intercepts
+			for (var i = 0; i < positionArrayX1.length; i++)
 			{
-				if (positionArrayX1[i] === positionArrayX1[j] && i != j )
+				if (true)
 				{
-					if (positionArrayY1[i] === positionArrayY1[j])
+					var num = parseInt((positionArrayY1.length - 1)/4)
+					if(Math.abs(positionArrayY1[num] - positionArrayY1[num+num+num+num]) <= 75 && Math.abs(positionArrayY1[num+num] - positionArrayY1[num+num+num]) <= 75)
 					{
-						if (positionArrayX.length > 30)
+						points -= 1;
+						console.log("Intercept Suggest it's an: O")
+						break;
+					}
+				}
+
+			for (var j = 0; j < positionArrayX.length; j++)
+				{
+
+					if (true)
+					{
+						if (positionArrayX[j] === positionArrayX1[i])
 						{
-							var max_num = Math.abs(Math.max(...positionArrayY1) - Math.max(...positionArrayY));
-							var min_num = Math.abs(Math.min(...positionArrayY1) - Math.min(...positionArrayY));
-							if(max_num >= 0 && max_num < 15 && min_num >= 0 && min_num < 15)
+							if(positionArrayY[j] === positionArrayY1[i])
 							{
-								intercept = "x";
-							}
-						}
-						else 
-						{
-							if(Math.abs(positionArrayX1[positionArrayX1.length - 1] - Math.max(...positionArrayX1)) > 5)
-							{
-								intercept = "c";
+								max_num = Math.abs(Math.max(...positionArrayY1) - Math.max(...positionArrayY)) ;
+								min_num = Math.abs(Math.min(...positionArrayY1) - Math.min(...positionArrayY));
+								if (max_num <=20 && min_num <=20)
+								{
+									points += 1; 
+									console.log("Intercept Suggest it's an: X")
+									break;
+								}
+								
 							}
 						}
 					}
 				}
 			}
+
+			//Characteristic 3: Number of strokes
+			console.log(lines);
+
+			if(lines == 2){
+				points += 1;
+				console.log("Strokes suggest this is an: X")
+			}
+			else{
+				points -= 1;
+				console.log("Strokes suggest this is an: O")
+			}
+
+			//Tally up the final points
+			if(points > 0){
+				intercept = 'x';
+				points = 0;
+			}
+			else{
+				intercept = 'c';
+				points = 0;
+			}
+
+			return intercept;
 		}
-		return intercept;
 	}
 
 	//minimax algorithm used to determine which move is effect for the AI given that the user is playing optimally 
